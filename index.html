@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Number Tally</title>
+        <style>
+            :root {
+                --bg: #e6eae5;
+                --surface: #fbfbf9;
+                --ink: #1c2a24;
+                --muted: #6a7a72;
+                --line: #d2d8d1;
+                --accent: #2d5d4f;
+                --accent-soft: #e2ece8;
+                --danger: #8c3a2e;
+                --radius: 6px;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                padding: 2.5rem 1.25rem;
+                background: var(--bg);
+                color: var(--ink);
+                font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+                font-size: 16px;
+                line-height: 1.5;
+                display: flex;
+                justify-content: center;
+            }
+
+            .app {
+                width: 100%;
+                max-width: 660px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+                font-weight: 600;
+                letter-spacing: -0.01em;
+                margin: 0 0 0.25rem;
+            }
+
+            .intro {
+                color: var(--muted);
+                margin: 0 0 1.75rem;
+                max-width: 48ch;
+            }
+
+            .panel {
+                background: var(--surface);
+                border: 1px solid var(--line);
+                border-radius: var(--radius);
+                padding: 1.25rem;
+                margin-bottom: 1.25rem;
+            }
+
+            /* ---- input row ---- */
+            .entry {
+                display: flex;
+                gap: 0.6rem;
+                align-items: stretch;
+            }
+
+            .field {
+                position: relative;
+                flex: 1;
+            }
+
+            .field svg {
+                position: absolute;
+                left: 0.7rem;
+                top: 0.85rem;
+                color: var(--muted);
+                pointer-events: none;
+            }
+
+            textarea {
+                width: 100%;
+                resize: vertical;
+                min-height: 3rem;
+                padding: 0.7rem 0.8rem 0.7rem 2.4rem;
+                font: inherit;
+                font-variant-numeric: tabular-nums;
+                color: var(--ink);
+                background: #fff;
+                border: 1px solid var(--line);
+                border-radius: var(--radius);
+            }
+
+            textarea:focus-visible,
+            button:focus-visible {
+                outline: 2px solid var(--accent);
+                outline-offset: 1px;
+            }
+
+            button {
+                font: inherit;
+                cursor: pointer;
+                border-radius: var(--radius);
+                border: 1px solid transparent;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+
+            .btn-add {
+                padding: 0.7rem 1.1rem;
+                background: var(--accent);
+                color: #fff;
+                font-weight: 500;
+            }
+
+            .btn-add:hover {
+                background: #24493e;
+            }
+
+            .error {
+                min-height: 1.25rem;
+                margin: 0.5rem 0 0;
+                font-size: 0.875rem;
+                color: var(--danger);
+            }
+
+            .hint {
+                margin: 0.35rem 0 0;
+                font-size: 0.8rem;
+                color: var(--muted);
+            }
+
+            /* ---- results ---- */
+            .results {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1px;
+                background: var(--line);
+                border: 1px solid var(--line);
+                border-radius: var(--radius);
+                overflow: hidden;
+                margin-bottom: 1.25rem;
+            }
+
+            .stat {
+                background: var(--surface);
+                padding: 1rem 1.1rem;
+            }
+
+            .stat span {
+                display: block;
+                font-size: 0.875rem;
+                color: var(--muted);
+            }
+
+            .stat strong {
+                display: block;
+                font-size: 1.75rem;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                letter-spacing: -0.02em;
+            }
+
+            /* ---- list ---- */
+            .list-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 0.75rem;
+            }
+
+            .list-head h2 {
+                font-size: 1rem;
+                font-weight: 600;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 0.45rem;
+            }
+
+            .btn-clear {
+                padding: 0.35rem 0.6rem;
+                background: transparent;
+                color: var(--danger);
+                border-color: var(--line);
+                font-size: 0.875rem;
+            }
+
+            .btn-clear:hover {
+                background: #f6ecea;
+            }
+
+            ol {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            li {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.55rem 0;
+                border-top: 1px solid var(--line);
+                font-variant-numeric: tabular-nums;
+            }
+
+            li:first-child {
+                border-top: none;
+            }
+
+            .value {
+                flex: 1;
+                font-size: 1.1rem;
+                font-weight: 500;
+            }
+
+            .count {
+                color: var(--accent);
+                font-weight: 600;
+                min-width: 3.5rem;
+                text-align: right;
+            }
+
+            .row-actions {
+                display: flex;
+                gap: 0.3rem;
+            }
+
+            .btn-step {
+                width: 1.9rem;
+                height: 1.9rem;
+                justify-content: center;
+                padding: 0;
+                background: var(--accent-soft);
+                color: var(--accent);
+            }
+
+            .btn-step:hover {
+                background: #d3e4dc;
+            }
+
+            .btn-remove {
+                padding: 0.3rem;
+                background: transparent;
+                color: var(--muted);
+                border-radius: 50%;
+            }
+
+            .btn-remove:hover {
+                background: #f6ecea;
+                color: var(--danger);
+            }
+
+            .empty {
+                color: var(--muted);
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+
+            /* ---- history ---- */
+            .draw-row {
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
+                padding: 0.7rem 0;
+                border-top: 1px solid var(--line);
+            }
+
+            .draw-row:first-child {
+                border-top: none;
+            }
+
+            .draw-meta {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 0.8rem;
+                color: var(--muted);
+            }
+
+            .draw-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.35rem;
+            }
+
+            .chip {
+                background: var(--accent-soft);
+                color: var(--accent);
+                font-size: 0.85rem;
+                font-weight: 500;
+                padding: 0.15rem 0.5rem;
+                border-radius: 999px;
+                font-variant-numeric: tabular-nums;
+            }
+
+            .btn-remove-draw {
+                padding: 0.2rem;
+                background: transparent;
+                color: var(--muted);
+                border-radius: 50%;
+            }
+
+            .btn-remove-draw:hover {
+                background: #f6ecea;
+                color: var(--danger);
+            }
+
+            @media (max-width: 480px) {
+                .entry {
+                    flex-direction: column;
+                }
+                .results {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main class="app">
+
+            <h1>Number tally</h1>
+            <p class="intro">Paste a full row of numbers and log it as one draw. The app tracks how often each number has come up across all draws, and keeps a history of every row you've logged.</p>
+
+            <section class="panel">
+                <div class="entry">
+                    <div class="field">
+                        <!-- hash / number icon -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/>
+                        <line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>
+                        </svg>
+                        <textarea id="rowInput" rows="2" placeholder="e.g. 2 3 5 15 18 21 22 24 25 27 39 46 48 49 53 55 62 63 69" autocomplete="off" autofocus></textarea>
+                    </div>
+                    <button class="btn-add" id="addBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Log draw
+                    </button>
+                </div>
+                <p class="error" id="error" role="alert"></p>
+                <p class="hint">Separate numbers with spaces or commas. Press Ctrl+Enter (Cmd+Enter on Mac) or click "Log draw" to submit.</p>
+            </section>
+
+            <section class="results">
+                <div class="stat"><span>Total entries</span><strong id="statCount">0</strong></div>
+                <div class="stat"><span>Distinct numbers</span><strong id="statDistinct">0</strong></div>
+                <div class="stat"><span>Most frequent</span><strong id="statTop">&ndash;</strong></div>
+            </section>
+
+            <section class="panel">
+                <div class="list-head">
+                    <h2>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/>
+                        <circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>
+                        </svg>
+                        How often each number came up
+                    </h2>
+                    <button class="btn-clear" id="clearBtn">Clear all</button>
+                </div>
+                <ol id="list"></ol>
+                <p class="empty" id="empty">Nothing yet. Your first number goes at the top.</p>
+            </section>
+
+            <section class="panel">
+                <div class="list-head">
+                    <h2>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="7.5" y1="4" x2="7.5" y2="9"/>
+                        </svg>
+                        Draw history
+                    </h2>
+                    <button class="btn-clear" id="clearHistoryBtn">Clear history</button>
+                </div>
+                <ol id="history"></ol>
+                <p class="empty" id="emptyHistory">No draws logged yet.</p>
+            </section>
+
+        </main>
+
+        <script>
+            const STORAGE_KEY = "number-tally:draws";
+            // State: every logged draw, oldest first.
+            // Each draw: { time: <ms since epoch>, numbers: [ ... ] }
+            // Frequency counts are derived from this, so the history is the single source of truth.
+            let draws = loadDraws();
+
+            function loadDraws() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        return Array.isArray(parsed) ? parsed : [];
+                    }
+                    // Migrate from the earlier "frequency only" version: each stored count
+                    // becomes its own single-number draw so no history is invented.
+                    const legacyCounts = localStorage.getItem("number-tally:counts");
+                    if (legacyCounts) {
+                        const counts = JSON.parse(legacyCounts);
+                        const migrated = [];
+                        Object.entries(counts).forEach(([key, count]) => {
+                            for (let i = 0; i < count; i++) {
+                                migrated.push({time: Date.now(), numbers: [Number(key)]});
+                        }
+                        });
+                        localStorage.removeItem("number-tally:counts");
+                        return migrated;
+                    }
+                    return [];
+                } catch (e) {
+                    console.error("Could not read saved draws:", e);
+                    return [];
+                }
+            }
+
+            function saveDraws() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(draws));
+                } catch (e) {
+                    console.error("Could not save draws:", e);
+                    showError("Your draw was logged but couldn't be saved for next time.");
+                }
+            }
+
+            const input = document.getElementById("rowInput");
+            const addBtn = document.getElementById("addBtn");
+            const clearBtn = document.getElementById("clearBtn");
+            const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+            const errorEl = document.getElementById("error");
+            const listEl = document.getElementById("list");
+            const emptyEl = document.getElementById("empty");
+            const historyEl = document.getElementById("history");
+            const emptyHistoryEl = document.getElementById("emptyHistory");
+
+            function parseRow(text) {
+                // Split on whitespace, commas, or semicolons; drop empty pieces.
+                const pieces = text.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
+                const numbers = [];
+                for (const piece of pieces) {
+                    const value = Number(piece.replace(",", "."));
+                    if (!Number.isFinite(value))
+                        return {error: '"' + piece + '" is not a number.'};
+                    numbers.push(value);
+                }
+                return {numbers};
+            }
+
+            function addDraw() {
+                const raw = input.value.trim();
+                if (raw === "") {
+                    showError("Paste or type a row of numbers first.");
+                    return;
+                }
+                const {numbers, error} = parseRow(raw);
+                if (error) {
+                    showError(error);
+                    return;
+                }
+                draws.push({time: Date.now(), numbers});
+                input.value = "";
+                showError("");
+                saveDraws();
+                render();
+                input.focus();
+            }
+
+            function removeDraw(index) {
+                draws.splice(index, 1);
+                saveDraws();
+                render();
+            }
+
+            function clearAll() {
+                draws = [];
+                showError("");
+                saveDraws();
+                render();
+                input.focus();
+            }
+
+            function showError(message) {
+                errorEl.textContent = message;
+            }
+
+            function format(n) {
+                // Round to 2 decimals, but don't show .00 on whole numbers.
+                return Number(Number(n).toFixed(2)).toLocaleString("en-US");
+            }
+
+            function formatTime(ms) {
+                const d = new Date(ms);
+                return d.toLocaleDateString(undefined, {day: "2-digit", month: "short", year: "numeric"})
+                        + " \u00b7 " + d.toLocaleTimeString(undefined, {hour: "2-digit", minute: "2-digit"});
+            }
+
+            function computeCounts() {
+                const counts = {};
+                draws.forEach(draw => {
+                    draw.numbers.forEach(n => {
+                        const key = String(n);
+                        counts[key] = (counts[key] || 0) + 1;
+                    });
+                });
+                return counts;
+            }
+
+            function render() {
+                renderFrequency();
+                renderHistory();
+            }
+
+            function renderFrequency() {
+                const counts = computeCounts();
+                const entries = Object.entries(counts); // [ [key, count], ... ]
+                const totalEntries = entries.reduce((sum, [, c]) => sum + c, 0);
+                const distinct = entries.length;
+
+                document.getElementById("statCount").textContent = totalEntries;
+                document.getElementById("statDistinct").textContent = distinct;
+
+                if (distinct === 0) {
+                    document.getElementById("statTop").textContent = "\u2013";
+                } else {
+                    const [topKey, topCount] = entries.reduce((best, cur) => cur[1] > best[1] ? cur : best);
+                    document.getElementById("statTop").textContent = format(topKey) + " (\u00d7" + topCount + ")";
+                }
+
+                listEl.innerHTML = "";
+                emptyEl.hidden = distinct > 0;
+
+                // Most frequent first; ties broken by numeric value ascending.
+                const sorted = entries.sort((a, b) => b[1] - a[1] || (Number(a[0]) - Number(b[0])));
+
+                sorted.forEach(([key, count]) => {
+                    const li = document.createElement("li");
+
+                    const val = document.createElement("span");
+                    val.className = "value";
+                    val.textContent = format(key);
+
+                    const cnt = document.createElement("span");
+                    cnt.className = "count";
+                    cnt.textContent = "\u00d7" + count;
+
+                    li.append(val, cnt);
+                    listEl.appendChild(li);
+                });
+            }
+
+            function renderHistory() {
+                historyEl.innerHTML = "";
+                emptyHistoryEl.hidden = draws.length > 0;
+
+                // Newest draw first, but "Draw #N" still reflects original logging order.
+                const reversed = [...draws].reverse();
+
+                reversed.forEach((draw, i) => {
+                    const realIndex = draws.length - 1 - i;
+                    const li = document.createElement("li");
+                    li.className = "draw-row";
+
+                    const meta = document.createElement("div");
+                    meta.className = "draw-meta";
+
+                    const label = document.createElement("span");
+                    label.textContent = "Draw #" + (realIndex + 1) + " \u00b7 " + draw.numbers.length + " numbers \u00b7 " + formatTime(draw.time);
+
+                    const del = document.createElement("button");
+                    del.className = "btn-remove-draw";
+                    del.title = "Remove this draw";
+                    del.setAttribute("aria-label", "Remove this draw");
+                    del.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
+                    del.addEventListener("click", () => removeDraw(realIndex));
+
+                    meta.append(label, del);
+
+                    const chips = document.createElement("div");
+                    chips.className = "draw-chips";
+                    draw.numbers.forEach(n => {
+                        const chip = document.createElement("span");
+                        chip.className = "chip";
+                        chip.textContent = format(n);
+                        chips.appendChild(chip);
+                    });
+
+                    li.append(meta, chips);
+                    historyEl.appendChild(li);
+                });
+            }
+
+            addBtn.addEventListener("click", addDraw);
+            clearBtn.addEventListener("click", clearAll);
+            clearHistoryBtn.addEventListener("click", clearAll);
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey))
+                    addDraw();
+            });
+
+            render();
+        </script>
+    </body>
+</html>
